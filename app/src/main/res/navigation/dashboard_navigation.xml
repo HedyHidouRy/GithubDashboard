@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools" android:id="@+id/dashboard_navigation"
+            app:startDestination="@id/searchUserFragment">
+
+    <fragment android:id="@+id/searchUserFragment"
+              android:name="com.viseo.githubdashboard.ui.usersearch.SearchUserFragment"
+              android:label="fragment_search_user" tools:layout="@layout/fragment_search_user"
+    >
+        <action android:id="@+id/action_searchUserFragment_to_reposListFragment"
+                app:destination="@id/reposListFragment"/>
+    </fragment>
+    <fragment android:id="@+id/reposListFragment"
+              android:name="com.viseo.githubdashboard.ui.reposlist.ReposListFragment"
+              android:label="fragment_repos_list" tools:layout="@layout/fragment_repos_list">
+        <argument android:name="user" app:argType="com.viseo.githubdashboard.data.models.User"/>
+        <action android:id="@+id/action_reposListFragment_to_repositoryDetailsFragment"
+                app:destination="@id/repositoryDetailsFragment"/>
+
+    </fragment>
+    <fragment android:id="@+id/repositoryDetailsFragment"
+              android:name="com.viseo.githubdashboard.ui.repodetails.RepositoryDetailsFragment"
+              android:label="fragment_repository_details" tools:layout="@layout/fragment_repository_details">
+        <argument android:name="user" app:argType="com.viseo.githubdashboard.data.models.User"/>
+        <argument android:name="repository" app:argType="com.viseo.githubdashboard.data.models.Repository"/>
+    </fragment>
+</navigation>
