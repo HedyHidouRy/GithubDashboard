@@ -3,14 +3,17 @@ package com.viseo.githubdashboard.ui.usersearch
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.viseo.githubdashboard.data.models.User
+import com.viseo.githubdashboard.data.providers.local.LocalDatabaseHelper
 import com.viseo.githubdashboard.data.repositories.GithubRepository
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
-class SearchUserViewModel(val githubRepository: GithubRepository) : ViewModel() {
+class SearchUserViewModel(
+    private val githubRemote: GithubRepository,
+    private val githubLocal: GithubRepository,
+    val localDatabaseHelper: LocalDatabaseHelper
+) : ViewModel() {
 
     var successResponse = MutableLiveData<User>()
     var loading = MutableLiveData<Boolean>()
@@ -27,21 +30,26 @@ class SearchUserViewModel(val githubRepository: GithubRepository) : ViewModel() 
     fun onSearch() {
         error.value = false
         searchContent?.let {
-            loading.value = true
             GlobalScope.launch {
-                try {
-                    val response = githubRepository.getUser(it)
-                    loading.postValue(false)
-                    successResponse.postValue(response)
-
-                } catch (e: HttpException) {
-                    errorCode.postValue(e.code())
-                    loading.postValue(false)
-                    error.postValue(true)
-                } catch (e: Throwable) {
-                    errorCode.postValue(-1)
-                    loading.postValue(false)
-                    error.postValue(true)
+                val user = githubLocal.getUser(it)
+                if (user != null) {
+                    successResponse.postValue(user)
+                } else {
+                    try {
+                        loading.postValue(true)
+                        val response = githubRemote.getUser(it)
+                        loading.postValue(false)
+                        localDatabaseHelper.insertUser(user = response)
+                        successResponse.postValue(response)
+                    } catch (e: HttpException) {
+                        errorCode.postValue(e.code())
+                        loading.postValue(false)
+                        error.postValue(true)
+                    } catch (e: Throwable) {
+                        errorCode.postValue(-1)
+                        loading.postValue(false)
+                        error.postValue(true)
+                    }
                 }
             }
 
